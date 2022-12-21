@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import json
+import click
+
+from klee_tools import parse_ktest_file, write_ktest_file
+
+@click.command()
+@click.argument('ktest_file', type=click.File('rb'))
+@click.option('-u', '--update', is_flag=True, default=False, help='Update the KTest file with the new values for specific fields')
+@click.option('-s', '--stats', is_flag=True, default=False, help='Print the stats of the KTest file')
+@click.option('-o', '--output', type=click.File('wb'), help='Path to Output KTest file')
+def main(ktest_file, update, stats, output):
+    if update: 
+        if output is None:
+            output = ktest_file
+            print('[+] Updating the current KTest File, Not creating a new one')
+        else:
+            print(f"[+] Creating a new KTest file : {output} with the updated values")
+        
+        ktest_object = parse_ktest_file(ktest_file)
+        while True:
+            field = input('''[+] Enter the field you want to update ('!list' to see the fields, '!done' to exit) :''')
+            if field == '!done':
+                break
+            if field == '!list':
+                print(ktest_object.object_names)
+                continue
+            if field not in ktest_object.object_names:
+                print(f'[+] {field} is not a valid field')
+                continue
+            value = input(f'[+] Enter the new value for {field} as hexstring : ')
+            try:
+                ktest_object.update_object(field, value)
+            except AssertionError as e:
+                print(f'[+] {e}, Please try again')
+                continue
+
+        write_ktest_file(output, ktest_object)
+        
+    if stats:
+        print('[+] Printing the stats of the KTest file')
+        ktest_object = parse_ktest_file(ktest_file)
+        print(ktest_object)
+    
+if __name__ == "__main__":
+    main()
