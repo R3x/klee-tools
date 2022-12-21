@@ -2,6 +2,7 @@ import struct
 import logging
 
 from .ktest import KTest
+from .repack import KTestRepack
 
 VERSION_NO = 3
 
@@ -82,9 +83,13 @@ def write_ktest_file(f, ktest_object):
     for name, data in ktest_object.objects:
         # Name
         f.write(struct.pack(">i", len(name)))
-        f.write(obj.name.encode())
+        f.write(name.encode())
         f.write(struct.pack(">i", len(data)))
-        f.write(obj.data)
+        f.write(data)
     
     # we are done
     f.close()
+
+def create_ktest_from_grammar(grammar, output_fp):
+    ktest_obj = KTestRepack(grammar.split("\n"))
+    ktest_obj.write_to_file(output_fp)

@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+import json
+import click
+import sys
+
+from klee_tools import create_ktest_from_grammar
+
+@click.command()
+@click.argument('output', type=click.File('wb'))
+@click.option('-g', '--grammar', type=click.File('r'), help='Path to the grammar file')
+def main(output, grammar):
+    if grammar is None:
+        print('[+] Grammar file not provided, enter in stdin : ')
+        grammar = sys.stdin.read()
+    else:
+        grammar = grammar.read()
+    print('[+] Creating a new KTest file : {output}')
+    create_ktest_from_grammar(grammar, output)
